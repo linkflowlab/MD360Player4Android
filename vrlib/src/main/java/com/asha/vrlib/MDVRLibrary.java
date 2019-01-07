@@ -1,5 +1,7 @@
 package com.asha.vrlib;
 
+import android.animation.PropertyValuesHolder;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.RectF;
 import android.hardware.SensorEventListener;
@@ -41,6 +43,7 @@ import com.google.android.apps.muzei.render.GLTextureView;
 import java.util.Iterator;
 import java.util.List;
 
+import static android.animation.PropertyValuesHolder.ofFloat;
 import static com.asha.vrlib.common.VRUtil.notNull;
 
 /**
@@ -83,6 +86,9 @@ public class MDVRLibrary {
     public static final int PROJECTION_MODE_STEREO_SPHERE_VERTICAL = 213;
     public static final int PROJECTION_MODE_CUBE = 214;
     public static final int PROJECTION_MODE_TINY_PLANET = 215;
+
+    public static final int CAMERA_MODE_NORMAL = 500;
+    public static final int CAMERA_MODE_LITTLE_PLANET = 501;
 
     private RectF mTextureSize = new RectF(0, 0, 1024, 1024);
     private InteractiveModeManager mInteractiveModeManager;
@@ -313,6 +319,59 @@ public class MDVRLibrary {
      */
     public void switchProjectionMode(final Context context, final int mode) {
         mProjectionModeManager.switchMode(context, mode);
+    }
+
+    public void switchCameraMode(final Context context, final int mode) {
+        MDDirectorCamUpdate cameraUpdate;
+        PropertyValuesHolder near;
+        PropertyValuesHolder eyeZ;
+        PropertyValuesHolder pitch;
+        PropertyValuesHolder yaw;
+        PropertyValuesHolder roll;
+
+        switch(mode) {
+            case CAMERA_MODE_LITTLE_PLANET:
+                cameraUpdate = updateCamera();
+                near = ofFloat("near", cameraUpdate.getNearScale(), -0.5f);
+                eyeZ = ofFloat("eyeZ", cameraUpdate.getEyeZ(), 18f);
+                pitch = ofFloat("pitch", cameraUpdate.getPitch(), 90f);
+                yaw = ofFloat("yaw", cameraUpdate.getYaw(), 90f);
+                roll = ofFloat("roll", cameraUpdate.getRoll(), 0f);
+                startCameraAnimation(cameraUpdate, near, eyeZ, pitch, yaw, roll);
+                break;
+            case CAMERA_MODE_NORMAL:
+            default:
+                cameraUpdate = updateCamera();
+                near = ofFloat("near", cameraUpdate.getNearScale(), 0f);
+                eyeZ = PropertyValuesHolder.ofFloat("eyeZ", cameraUpdate.getEyeZ(), 0f);
+                pitch = PropertyValuesHolder.ofFloat("pitch", cameraUpdate.getPitch(), 0f);
+                yaw = PropertyValuesHolder.ofFloat("yaw", cameraUpdate.getYaw(), 0f);
+                roll = PropertyValuesHolder.ofFloat("roll", cameraUpdate.getRoll(), 0f);
+                startCameraAnimation(cameraUpdate, near, eyeZ, pitch, yaw, roll);
+                break;
+        }
+    }
+
+    private ValueAnimator animator;
+
+    private void startCameraAnimation(final MDDirectorCamUpdate cameraUpdate, PropertyValuesHolder... values){
+        if (animator != null){
+            animator.cancel();
+        }
+
+        animator = ValueAnimator.ofPropertyValuesHolder(values).setDuration(2000);
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float near = (float) animation.getAnimatedValue("near");
+                float eyeZ = (float) animation.getAnimatedValue("eyeZ");
+                float pitch = (float) animation.getAnimatedValue("pitch");
+                float yaw = (float) animation.getAnimatedValue("yaw");
+                float roll = (float) animation.getAnimatedValue("roll");
+                cameraUpdate.setEyeZ(eyeZ).setNearScale(near).setPitch(pitch).setYaw(yaw).setRoll(roll);
+            }
+        });
+        animator.start();
     }
 
     public void resetTouch(){
