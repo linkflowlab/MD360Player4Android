@@ -134,6 +134,8 @@ public class ProjectionModeManager extends ModeManager<AbsProjectionStrategy> im
                 return new MultiFishEyeProjection(1f, MDDirection.VERTICAL);
             case MDVRLibrary.PROJECTION_MODE_CUBE:
                 return new CubeProjection();
+            case MDVRLibrary.PROJECTION_MODE_TINY_PLANET:
+                return TinyPlanetProjection.create(mode,this.mTextureSize);
             case MDVRLibrary.PROJECTION_MODE_SPHERE:
             default:
                 return new SphereProjection();

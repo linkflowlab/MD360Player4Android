@@ -82,6 +82,7 @@ public class MDVRLibrary {
     public static final int PROJECTION_MODE_STEREO_SPHERE_HORIZONTAL = 212;
     public static final int PROJECTION_MODE_STEREO_SPHERE_VERTICAL = 213;
     public static final int PROJECTION_MODE_CUBE = 214;
+    public static final int PROJECTION_MODE_TINY_PLANET = 215;
 
     private RectF mTextureSize = new RectF(0, 0, 1024, 1024);
     private InteractiveModeManager mInteractiveModeManager;
